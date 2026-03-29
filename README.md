@@ -16,9 +16,10 @@ This integration was originally developed to support the Caching strategy needs 
 There is a work in progress adding `presets` for using common caching strategies and customizing the behavior of the service worker via config options. This aims to reduce the need for writing the service worker script by hand for most use cases.
 
 Get in touch:
+
 1. Submit tickets via [SourceHut todo](https://todo.sr.ht/~ayoayco/astro-sw)
 1. Start a [GitHub discussion](https://github.com/ayoayco/astro-sw/discussions)
-1. Email me: [ayo@ayco.io](mailto:ayo@ayco.io)
+1. Email me: [hi@ayo.run](mailto:hi@ayo.run)
 
 ## Installation
 
@@ -37,16 +38,16 @@ $ pnpm add @ayco/astro-sw
 Here's an example `astro.config.mjs` file:
 
 ```js
-import { defineConfig } from "astro/config";
-import serviceWorker from "@ayco/astro-sw";
+import { defineConfig } from 'astro/config'
+import serviceWorker from '@ayco/astro-sw'
 
 export default defineConfig({
   integrations: [
     serviceWorker({
-      path: "./src/sw.ts",
+      path: './src/sw.ts',
     }),
   ],
-});
+})
 ```
 
 For more options available, see the [API](#api).
@@ -56,19 +57,19 @@ For more options available, see the [API](#api).
 We use `esbuild` to resolve service worker `imports` and build TS files! You can customize the build options by providing it to the `esbuild` configuration property.
 
 ```js
-import { defineConfig } from "astro/config";
-import serviceWorker from "@ayco/astro-sw";
+import { defineConfig } from 'astro/config'
+import serviceWorker from '@ayco/astro-sw'
 
 export default defineConfig({
   integrations: [
     serviceWorker({
-      path: "./src/sw.ts",
+      path: './src/sw.ts',
       esbuild: {
         minify: true,
       },
     }),
   ],
-});
+})
 ```
 
 ## Injected variables
@@ -80,7 +81,7 @@ The most important variable your service worker will have access to is `__assets
 Because of the injected variables not being defined in your script, you might get `eslint` errors for the undefined variables when you have the `no-undef` rule. To prevent this, you can use our exported `globals` object in your eslint config as follows:
 
 ```js
-import astroSwGlobals from "@ayco/astro-sw/globals";
+import astroSwGlobals from '@ayco/astro-sw/globals'
 
 export default [
   {
@@ -92,7 +93,7 @@ export default [
   },
   // add more generic rule sets here, such as:
   // jsPlugin.configs.recommended,
-];
+]
 ```
 
 ## Registration Hooks
@@ -109,27 +110,27 @@ The following properties are available for the `registrationHooks` configuration
 1. `afterRegistration` - after the registration succeeds
 
 ```js
-import { defineConfig } from "astro/config";
-import serviceWorker from "@ayco/astro-sw";
+import { defineConfig } from 'astro/config'
+import serviceWorker from '@ayco/astro-sw'
 
 export default defineConfig({
   integrations: [
     serviceWorker({
-      path: "./src/sw.ts",
+      path: './src/sw.ts',
       registrationHooks: {
         afterRegistration: async () => {
-          const sw = await navigator.serviceWorker.getRegistration();
-          console.log(">>> registrered", sw);
+          const sw = await navigator.serviceWorker.getRegistration()
+          console.log('>>> registrered', sw)
         },
-        installing: () => console.log("installing..."),
-        waiting: () => console.log("waiting..."),
-        active: () => console.log("active..."),
+        installing: () => console.log('installing...'),
+        waiting: () => console.log('waiting...'),
+        active: () => console.log('active...'),
         error: (error) => console.error(error),
-        unsupported: () => console.log(":("),
+        unsupported: () => console.log(':('),
       },
     }),
   ],
-});
+})
 ```
 
 ## API
