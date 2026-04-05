@@ -2,7 +2,7 @@
   "name": "@ayco/astro-sw",
   "author": "Ayo Ayco",
   "license": "MIT",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "repository": {
     "type": "git",
     "url": "https://git.ayo.run/ayo/astro-sw"
