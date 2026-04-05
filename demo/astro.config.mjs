@@ -3,7 +3,9 @@
 import { defineConfig } from 'astro/config'
 import node from '@astrojs/node'
 import serviceWorker from '@ayco/astro-sw'
-import { deleteOldCaches, staleWhileRevalidate } from '@ayco/astro-sw/presets'
+// import { deleteOldCaches, staleWhileRevalidate } from '@ayco/astro-sw/presets'
+
+import * as pkg from './package.json'
 
 export default defineConfig({
   output: 'static',
@@ -14,12 +16,11 @@ export default defineConfig({
   integrations: [
     serviceWorker({
       path: './src/sw.ts',
-      presets: [staleWhileRevalidate(), deleteOldCaches()],
-      customRoutes: [
-        // '/threads'
-      ],
-      excludeRoutes: ['/exclude'],
-      assetCachePrefix: 'hey',
+      assetCachePrefix: 'AstroSWTest',
+      assetCacheVersionID: pkg.version,
+      // presets: [staleWhileRevalidate(), deleteOldCaches()],
+      exclude: ['/exclude'],
+      // include: ['/components/web-component.js'],
       logAssets: true,
       esbuild: {
         minify: true,
