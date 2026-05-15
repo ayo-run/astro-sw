@@ -1,3 +1,7 @@
 packages:
   - "package"
   - "demo"
+  - "demo-static"
+allowBuilds:
+  esbuild: false
+  sharp: false

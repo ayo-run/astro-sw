@@ -20,6 +20,8 @@
     "build:demo": "pnpm run build && pnpm -F demo build",
     "demo": "pnpm run build && pnpm -F demo build:preview",
     "dev": "pnpm run demo",
+    "demo:static": "pnpm run build && pnpm -F demo-static build:preview",
+    "dev:static": "pnpm run demo:static",
     "postinstall": "pnpm run build"
   },
   "devDependencies": {
