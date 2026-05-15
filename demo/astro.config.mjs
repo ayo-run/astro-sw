@@ -8,7 +8,7 @@ import serviceWorker from '@ayco/astro-sw'
 import * as pkg from './package.json'
 
 export default defineConfig({
-  output: 'static',
+  output: 'server',
   adapter: node({
     mode: 'middleware',
   }),
