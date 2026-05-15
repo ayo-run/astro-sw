@@ -3,7 +3,7 @@
  * @author Ayo Ayco <https://ayo.ayco.io>
  */
 
-import { readFile, writeFile, unlink } from 'node:fs/promises'
+import { readFile, writeFile, unlink, readdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { resolve, dirname, join } from 'node:path'
 import { build } from 'esbuild'
@@ -75,20 +75,21 @@ export default function serviceWorker(
 
         registerSW();`
 
-  // let output = 'static'
+  let output = 'static'
   const __dirname = resolve(dirname('.'))
 
   return {
     name: ASTROSW,
     hooks: {
-      'astro:config:setup': async ({ injectScript, command, logger }) => {
+      'astro:config:setup': async ({ injectScript, command, logger, config }) => {
         if (!serviceWorkerPath || serviceWorkerPath === '') {
           // REQUIRED OPTION IS MISSING
           logger.error('Missing required path to service worker script')
         }
         // const transformedScript=await transform(registrationScript)
 
-        // output = _config.output
+        output = config.output
+
         if (command === 'build') {
           injectScript('page', registrationScript)
         }
@@ -107,6 +108,7 @@ declare const __prefix: string;`
         dir,
         pages,
         logger,
+        assets: buildAssets
       }) => {
         const outfile = fileURLToPath(new URL('./sw.js', dir))
         const swPath =
@@ -114,6 +116,25 @@ declare const __prefix: string;`
             ? join(__dirname, serviceWorkerPath)
             : undefined
         let originalScript
+
+
+        /**
+         * only for output = 'static
+         */
+        let _publicFiles: string[] = []
+
+        if (output === 'static') {
+          _publicFiles = (
+            (await readdir(dir, { withFileTypes: true, recursive: true })) ?? []
+          )
+            .filter(dirent => dirent.isFile())
+            .map((dirent) => {
+              const currentDir = dirent.parentPath.replace(__dirname + '/dist/', '/')
+              const filepath = `${currentDir === '/' ? '' : currentDir}/${dirent.name}`
+              return filepath
+            })
+        }
+
 
         const _pages =
           pages
@@ -140,12 +161,17 @@ declare const __prefix: string;`
           ...exclude.map((route) => `${route}/`),
         ]
 
+        const _buildAssets = Array.from(buildAssets.keys())
+          .filter(key => !key.includes('...slug'))
+
         const __assets = [
-          ...new Set([
+          ...new Set([ // dedupe
             ...ssrAssets,
             ...include,
+            ..._buildAssets,
             ..._pages,
             ..._pagesWithoutEndSlash,
+            ...(output === 'static' ? _publicFiles : [])
           ]),
         ].filter(
           (asset) =>
