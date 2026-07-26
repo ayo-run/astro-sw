@@ -53,7 +53,6 @@
     "check": "npm run format && npm run lint",
     "prepare": "husky",
     "bump": "bumpp",
-    "publish": "npm publish",
     "release": "npm run release:check && bumpp && node ./scripts/release.js",
     "release:check": "npm run build && npm run lint && npm run test && npm run build:demo && pnpm -F demo-static build",
     "version:patch": "npm version patch",
