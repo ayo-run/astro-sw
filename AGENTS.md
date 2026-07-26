@@ -57,6 +57,8 @@ Because the root is the package, adding a dependency to it needs the explicit wo
 
 **Nothing is published from a laptop.** The `v*` tag landing on `gh` triggers `.github/workflows/release.yml`, which publishes to npm via **trusted publishing** (OIDC, `id-token: write`) — no npm token exists anywhere, and the release carries provenance. The workflow refuses to publish if the tag and `package.json` version disagree, and routes prerelease versions to their own dist-tag (`1.1.0-beta.1` → `beta`) so `latest` keeps pointing at the newest stable.
 
+`package.json` `repository.url` points at the **GitHub mirror**, not at `origin` (git.ayo.run), even though git.ayo.run is the repo of record. This is load-bearing: npm validates the provenance attestation against that field, and publishing fails with `E422 ... expected to match "https://github.com/ayo-run/astro-sw" from provenance` if it points anywhere else. Do not "correct" it back.
+
 The leftover `npm run publish` script is a manual escape hatch only; using it produces a release without provenance and will fail outright if npm's "require trusted publishing" setting is enabled for the package.
 
 `postinstall` runs `npm run build`, and the husky `pre-commit` hook runs lint + test. `post-commit` pushes to the `gh` and `sh` mirrors automatically — expect commits to be pushed to public remotes as a side effect of committing.

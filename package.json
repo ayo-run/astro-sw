@@ -5,7 +5,7 @@
   "version": "1.0.2",
   "repository": {
     "type": "git",
-    "url": "https://git.ayo.run/ayo/astro-sw"
+    "url": "git+https://github.com/ayo-run/astro-sw.git"
   },
   "description": "Use your own authored service worker with Astro",
   "exports": {
