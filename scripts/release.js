@@ -49,4 +49,4 @@ if (failed.length) {
 
 console.log(`
 ${tag} is on ${REQUIRED_REMOTE}. Publishing is now up to GitHub Actions:
-  https://github.com/ayoayco/astro-sw/actions/workflows/release.yml`)
+  https://github.com/ayo-run/astro-sw/actions/workflows/release.yml`)
