@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  changelog:
+    name: Changelog
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Generate release
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: npx changelogithub
+
+  publish-npm:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          registry-url: 'https://registry.npmjs.org'
+          cache: pnpm
+
+      # trusted publishing needs npm >= 11.5.1, newer than the bundled npm
+      - name: Ensure npm supports trusted publishing
+        run: npm install -g npm@latest
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+
+      - name: Publish
+        run: |
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          VERSION_FROM_TAG="${GITHUB_REF_NAME#v}"
+          if [ "$PACKAGE_VERSION" != "$VERSION_FROM_TAG" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $PACKAGE_VERSION"
+            exit 1
+          fi
+          # A prerelease version publishes under its own dist-tag, so `latest`
+          # keeps pointing at the newest stable: 1.1.0-beta.1 -> dist-tag `beta`.
+          if [[ "$PACKAGE_VERSION" == *-* ]]; then
+            DIST_TAG="${PACKAGE_VERSION#*-}"; DIST_TAG="${DIST_TAG%%.*}"
+          else
+            DIST_TAG="latest"
+          fi
+          echo "Publishing $PACKAGE_VERSION to dist-tag '$DIST_TAG'"
+          npm publish --access public --tag "$DIST_TAG"

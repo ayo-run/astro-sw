@@ -31,6 +31,8 @@ pnpm run check          # format + lint
 
 pnpm run dev            # build + build & preview the SSR demo (Fastify, port 4321)
 pnpm run dev:static     # build + build & preview the static demo
+
+pnpm run release        # check + bumpp + push tags; CI does the publishing
 ```
 
 Single test: `pnpm exec vitest run test/astro-sw.test.ts` (or `-t '<name>'` to filter by test name).
@@ -45,7 +47,17 @@ Because the root is the package, adding a dependency to it needs the explicit wo
 
 `src/astro-sw.ts` is fully covered by line. The presets are not covered at all — they are unwired (see below), so the repo-wide total sits near 55%. Barrel and type-only files are excluded from the report.
 
-Release: `pnpm run bump:build:publish` (bumpp → tsup → `npm publish` from the root).
+### Releasing
+
+`pnpm run release` is the only supported path. It runs, in order:
+
+1. `release:check` — build, lint, test, then build **both** demos, since static and server outputs collect assets differently.
+2. `bumpp` — bumps the version, commits `chore: release vX.Y.Z`, tags `vX.Y.Z`, and pushes to `origin` (git.ayo.run) itself.
+3. `scripts/release.js` — refuses to run off `main` or with a dirty tree, then pushes the commit and tag to `origin`, `gh`, and `sh`. Only `gh` is fatal on failure; the others are best-effort mirrors.
+
+**Nothing is published from a laptop.** The `v*` tag landing on `gh` triggers `.github/workflows/release.yml`, which publishes to npm via **trusted publishing** (OIDC, `id-token: write`) — no npm token exists anywhere, and the release carries provenance. The workflow refuses to publish if the tag and `package.json` version disagree, and routes prerelease versions to their own dist-tag (`1.1.0-beta.1` → `beta`) so `latest` keeps pointing at the newest stable.
+
+The leftover `npm run publish` script is a manual escape hatch only; using it produces a release without provenance and will fail outright if npm's "require trusted publishing" setting is enabled for the package.
 
 `postinstall` runs `npm run build`, and the husky `pre-commit` hook runs lint + test. `post-commit` pushes to the `gh` and `sh` mirrors automatically — expect commits to be pushed to public remotes as a side effect of committing.
 
