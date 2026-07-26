@@ -42,6 +42,7 @@
   },
   "scripts": {
     "build": "tsup src/astro-sw.ts src/presets/index.ts src/presets/**/index.ts src/eslint/globals.ts --format esm --dts --clean && cp ../README.md .",
+    "prepack": "echo 'PREPACK...' && npm run build",
     "test": "vitest run",
     "bump": "bumpp",
     "publish": "npm publish",
