@@ -7,16 +7,26 @@ settings:
 importers:
 
   .:
+    dependencies:
+      astro:
+        specifier: ^6
+        version: 6.1.3(@types/node@26.1.1)(jiti@2.7.0)(rollup@4.62.2)(typescript@5.9.3)(yaml@2.9.0)
+      esbuild:
+        specifier: ^0.28.1
+        version: 0.28.1
     devDependencies:
-      '@ayco/astro-sw':
-        specifier: '*'
-        version: 1.0.0(astro@6.1.3(@types/node@26.1.1)(jiti@2.7.0)(rollup@4.62.2)(typescript@5.9.3)(yaml@2.9.0))
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.8.0(jiti@2.7.0))
+      '@types/node':
+        specifier: ^26.1.1
+        version: 26.1.1
       astro-eslint-parser:
         specifier: ^1.3.0
         version: 1.4.0
+      bumpp:
+        specifier: ^12.0.0
+        version: 12.0.0
       eslint:
         specifier: ^10.0.3
         version: 10.8.0(jiti@2.7.0)
@@ -58,7 +68,7 @@ importers:
         version: 10.0.4(astro@6.1.3(@types/node@26.1.1)(jiti@2.7.0)(rollup@4.62.2)(typescript@5.9.3)(yaml@2.9.0))
       '@ayco/astro-sw':
         specifier: workspace:*
-        version: link:../package
+        version: link:..
       '@fastify/middie':
         specifier: ^9.3.1
         version: 9.3.1
@@ -79,7 +89,7 @@ importers:
         version: 10.0.4(astro@6.1.3(@types/node@26.1.1)(jiti@2.7.0)(rollup@4.62.2)(typescript@5.9.3)(yaml@2.9.0))
       '@ayco/astro-sw':
         specifier: workspace:*
-        version: link:../package
+        version: link:..
       '@fastify/middie':
         specifier: ^9.3.1
         version: 9.3.1
@@ -92,22 +102,6 @@ importers:
       fastify:
         specifier: ^5.8.4
         version: 5.8.4
-
-  package:
-    dependencies:
-      astro:
-        specifier: ^6
-        version: 6.1.3(@types/node@25.5.0)(jiti@2.6.1)(rollup@4.62.2)(typescript@5.9.3)(yaml@2.8.3)
-      esbuild:
-        specifier: ^0.28.1
-        version: 0.28.1
-    devDependencies:
-      '@types/node':
-        specifier: ^26.1.1
-        version: 26.1.1
-      bumpp:
-        specifier: ^12.0.0
-        version: 12.0.0
 
 packages:
 
@@ -135,12 +129,6 @@ packages:
   '@astrojs/telemetry@3.3.0':
     resolution: {integrity: sha512-UFBgfeldP06qu6khs/yY+q1cDAaArM2/7AEIqQ9Cuvf7B1hNLq0xDrZkct+QoIGyjq56y8IaE2I3CTvG99mlhQ==}
     engines: {node: 18.20.8 || ^20.3.0 || >=22.0.0}
-
-  '@ayco/astro-sw@1.0.0':
-    resolution: {integrity: sha512-J7CimXCNl6w0wXN9LPwokcBHeZP055tYssJBMUHU+03kSqiHN2V+saAmR0DynqDd2sKf79JJiUv9m0ekkv2rUQ==}
-    engines: {node: '>=18.0.0'}
-    peerDependencies:
-      astro: ^6
 
   '@babel/helper-string-parser@7.27.1':
     resolution: {integrity: sha512-qMlSxKbpRlAridDExk92nSobyDdpPijUq2DW6oDnUqd0iOGxmQjyqhMIihI9+zv4LPyZdRje2cavWPbCbWm3eA==}
@@ -1119,9 +1107,6 @@ packages:
 
   '@types/nlcst@2.0.3':
     resolution: {integrity: sha512-vSYNSDe6Ix3q+6Z7ri9lyWqgGhJTmzRjZRqyq15N0Z/1/UnVsno9G/N40NBijoYx2seFDIl0+B2mgAb9mezUCA==}
-
-  '@types/node@25.5.0':
-    resolution: {integrity: sha512-jp2P3tQMSxWugkCUKLRPVUpGaL5MVFwF8RDuSRztfwgN1wmqJeMSbKlnEtQqU8UrhTmzEmZdu2I6v2dpp7XIxw==}
 
   '@types/node@26.1.1':
     resolution: {integrity: sha512-nxAkRSVkN1Y0JC1W8ky/fTfkGsMmcrRsbx+3XoZE+rMOX71kLYTV7fLXpqud1GpbpP5TuffXFqfX7fH2GgZREw==}
@@ -2138,10 +2123,6 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
-  jiti@2.6.1:
-    resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
-    hasBin: true
-
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
@@ -3099,9 +3080,6 @@ packages:
   uncrypto@0.1.3:
     resolution: {integrity: sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q==}
 
-  undici-types@7.18.2:
-    resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
-
   undici-types@8.3.0:
     resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
@@ -3348,11 +3326,6 @@ packages:
   xxhash-wasm@1.1.0:
     resolution: {integrity: sha512-147y/6YNh+tlp6nd/2pWq38i9h6mz/EuQ6njIrmW8D1BS5nCqs0P6DG+m6zTGnNz5I+uhZ0SHxBs9BsPrwcKDA==}
 
-  yaml@2.8.3:
-    resolution: {integrity: sha512-AvbaCLOO2Otw/lW5bmh9d/WEdcDFdQp2Z2ZUH3pX9U2ihyUY0nvLv7J6TrWowklRGPYbB/IuIMfYgxaCPg5Bpg==}
-    engines: {node: '>= 14.6'}
-    hasBin: true
-
   yaml@2.9.0:
     resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
     engines: {node: '>= 14.6'}
@@ -3436,11 +3409,6 @@ snapshots:
       which-pm-runs: 1.1.0
     transitivePeerDependencies:
       - supports-color
-
-  '@ayco/astro-sw@1.0.0(astro@6.1.3(@types/node@26.1.1)(jiti@2.7.0)(rollup@4.62.2)(typescript@5.9.3)(yaml@2.9.0))':
-    dependencies:
-      astro: 6.1.3(@types/node@26.1.1)(jiti@2.7.0)(rollup@4.62.2)(typescript@5.9.3)(yaml@2.9.0)
-      esbuild: 0.27.7
 
   '@babel/helper-string-parser@7.27.1': {}
 
@@ -4100,11 +4068,6 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.3
 
-  '@types/node@25.5.0':
-    dependencies:
-      undici-types: 7.18.2
-    optional: true
-
   '@types/node@26.1.1':
     dependencies:
       undici-types: 8.3.0
@@ -4346,100 +4309,6 @@ snapshots:
       semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
-
-  astro@6.1.3(@types/node@25.5.0)(jiti@2.6.1)(rollup@4.62.2)(typescript@5.9.3)(yaml@2.8.3):
-    dependencies:
-      '@astrojs/compiler': 3.0.1
-      '@astrojs/internal-helpers': 0.8.0
-      '@astrojs/markdown-remark': 7.1.0
-      '@astrojs/telemetry': 3.3.0
-      '@capsizecss/unpack': 4.0.0
-      '@clack/prompts': 1.2.0
-      '@oslojs/encoding': 1.1.0
-      '@rollup/pluginutils': 5.3.0(rollup@4.62.2)
-      aria-query: 5.3.2
-      axobject-query: 4.1.0
-      ci-info: 4.4.0
-      clsx: 2.1.1
-      common-ancestor-path: 2.0.0
-      cookie: 1.1.1
-      devalue: 5.6.4
-      diff: 8.0.4
-      dlv: 1.1.3
-      dset: 3.1.4
-      es-module-lexer: 2.0.0
-      esbuild: 0.27.7
-      flattie: 1.1.1
-      fontace: 0.4.1
-      github-slugger: 2.0.0
-      html-escaper: 3.0.3
-      http-cache-semantics: 4.2.0
-      js-yaml: 4.1.1
-      magic-string: 0.30.21
-      magicast: 0.5.2
-      mrmime: 2.0.1
-      neotraverse: 0.6.18
-      obug: 2.1.1
-      p-limit: 7.3.0
-      p-queue: 9.1.1
-      package-manager-detector: 1.6.0
-      piccolore: 0.1.3
-      picomatch: 4.0.4
-      rehype: 13.0.2
-      semver: 7.7.4
-      shiki: 4.0.2
-      smol-toml: 1.6.1
-      svgo: 4.0.1
-      tinyclip: 0.1.12
-      tinyexec: 1.0.4
-      tinyglobby: 0.2.15
-      tsconfck: 3.1.6(typescript@5.9.3)
-      ultrahtml: 1.6.0
-      unifont: 0.7.4
-      unist-util-visit: 5.1.0
-      unstorage: 1.17.5
-      vfile: 6.0.3
-      vite: 7.3.1(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.3)
-      vitefu: 1.1.3(vite@7.3.1(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.3))
-      xxhash-wasm: 1.1.0
-      yargs-parser: 22.0.0
-      zod: 4.3.6
-    optionalDependencies:
-      sharp: 0.34.5
-    transitivePeerDependencies:
-      - '@azure/app-configuration'
-      - '@azure/cosmos'
-      - '@azure/data-tables'
-      - '@azure/identity'
-      - '@azure/keyvault-secrets'
-      - '@azure/storage-blob'
-      - '@capacitor/preferences'
-      - '@deno/kv'
-      - '@netlify/blobs'
-      - '@planetscale/database'
-      - '@types/node'
-      - '@upstash/redis'
-      - '@vercel/blob'
-      - '@vercel/functions'
-      - '@vercel/kv'
-      - aws4fetch
-      - db0
-      - idb-keyval
-      - ioredis
-      - jiti
-      - less
-      - lightningcss
-      - rollup
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - tsx
-      - typescript
-      - uploadthing
-      - yaml
 
   astro@6.1.3(@types/node@26.1.1)(jiti@2.7.0)(rollup@4.62.2)(typescript@5.9.3)(yaml@2.9.0):
     dependencies:
@@ -5559,9 +5428,6 @@ snapshots:
   isarray@2.0.5: {}
 
   isexe@2.0.0: {}
-
-  jiti@2.6.1:
-    optional: true
 
   jiti@2.7.0: {}
 
@@ -6859,9 +6725,6 @@ snapshots:
 
   uncrypto@0.1.3: {}
 
-  undici-types@7.18.2:
-    optional: true
-
   undici-types@8.3.0: {}
 
   unified@11.0.5:
@@ -6956,20 +6819,6 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite@7.3.1(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.3):
-    dependencies:
-      esbuild: 0.27.7
-      fdir: 6.5.0(picomatch@4.0.4)
-      picomatch: 4.0.4
-      postcss: 8.5.8
-      rollup: 4.60.1
-      tinyglobby: 0.2.15
-    optionalDependencies:
-      '@types/node': 25.5.0
-      fsevents: 2.3.3
-      jiti: 2.6.1
-      yaml: 2.8.3
-
   vite@7.3.1(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0):
     dependencies:
       esbuild: 0.27.7
@@ -6983,10 +6832,6 @@ snapshots:
       fsevents: 2.3.3
       jiti: 2.7.0
       yaml: 2.9.0
-
-  vitefu@1.1.3(vite@7.3.1(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.3)):
-    optionalDependencies:
-      vite: 7.3.1(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.3)
 
   vitefu@1.1.3(vite@7.3.1(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0)):
     optionalDependencies:
@@ -7076,9 +6921,6 @@ snapshots:
   word-wrap@1.2.5: {}
 
   xxhash-wasm@1.1.0: {}
-
-  yaml@2.8.3:
-    optional: true
 
   yaml@2.9.0: {}
 

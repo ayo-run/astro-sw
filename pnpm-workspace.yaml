@@ -1,5 +1,4 @@
 packages:
-  - "package"
   - "demo"
   - "demo-static"
 allowBuilds:

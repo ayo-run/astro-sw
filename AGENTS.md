@@ -8,36 +8,39 @@ This file provides guidance to any AI Coding Agent / Assistant when working with
 
 ## Repo layout (pnpm workspace)
 
-- `package/` — the published package `@ayco/astro-sw` (the only thing that ships)
+The **repo root is the published package** — `package.json` at the root is `@ayco/astro-sw`, and `files` limits the tarball to `dist`, `LICENSE`, `README.md`, `package.json`.
+
+- `src/` — the integration source (the only thing that ships, after a build to `dist/`)
+- `test/` — vitest suite, run from the root
 - `demo/` — Astro `output: 'server'` demo, previewed through a Fastify server (`demo/server.mjs`)
 - `demo-static/` — Astro `output: 'static'` demo, previewed with `astro preview`
 
-Both demos consume the package via `workspace:*`, so changes to `package/src` require a rebuild before the demos see them — which is why almost every root script chains `pnpm run build` first.
+Only the demos are listed in `pnpm-workspace.yaml`; the root package is implicitly part of the workspace. Both demos consume it via `workspace:*` (pnpm symlinks them straight to the repo root), so changes to `src/` require a rebuild before the demos see them — which is why almost every demo script chains `npm run build` first.
 
 ## Commands
 
 Run everything from the repo root:
 
 ```bash
-pnpm run build          # tsup build of package/ (also copies README.md into package/)
-pnpm run test           # vitest run in package/
+pnpm run build          # tsup build of src/ into dist/
+pnpm run test           # vitest run
 pnpm run lint           # eslint with cache
 pnpm run format         # prettier --write
 pnpm run check          # format + lint
 
-pnpm run dev            # build package + build & preview the SSR demo (Fastify, port 4321)
-pnpm run dev:static     # build package + build & preview the static demo
+pnpm run dev            # build + build & preview the SSR demo (Fastify, port 4321)
+pnpm run dev:static     # build + build & preview the static demo
 ```
 
-Single test: `pnpm -F @ayco/astro-sw exec vitest run test/astro-sw.test.ts` (or `-t '<name>'` to filter by test name). The package test suite is currently a placeholder.
+Single test: `pnpm exec vitest run test/astro-sw.test.ts` (or `-t '<name>'` to filter by test name). The test suite is currently a placeholder.
 
-Release: `pnpm run bump:build:publish` (bumpp → tsup → `npm publish` from `package/`).
+Release: `pnpm run bump:build:publish` (bumpp → tsup → `npm publish` from the root).
 
-`postinstall` runs `pnpm run build`, and the husky `pre-commit` hook runs lint + test. `post-commit` pushes to the `gh` and `sh` mirrors automatically — expect commits to be pushed to public remotes as a side effect of committing.
+`postinstall` runs `npm run build`, and the husky `pre-commit` hook runs lint + test. `post-commit` pushes to the `gh` and `sh` mirrors automatically — expect commits to be pushed to public remotes as a side effect of committing.
 
 ## Architecture
 
-`package/src/astro-sw.ts` is essentially the whole integration; everything else is supporting types/presets. It is a single `AstroIntegration` using four hooks:
+`src/astro-sw.ts` is essentially the whole integration; everything else is supporting types/presets. It is a single `AstroIntegration` using four hooks:
 
 1. **`astro:config:setup`** — records `config.output` (needed later to decide whether to walk the public/dist tree) and, only when `command === 'build'`, injects a page-level registration script. That script is built by **stringifying the user's `registrationHooks` callbacks** (`fn.toString()`) into inline source — so those hooks must be self-contained; they cannot close over anything in `astro.config.mjs`.
 2. **`astro:config:done`** — `injectTypes` a `caching.d.ts` declaring `__assets`, `__version`, `__prefix` so user service workers typecheck.
@@ -60,14 +63,14 @@ Static and server outputs therefore reach the asset list by different paths; a c
 
 ### Presets (incomplete)
 
-`package/src/presets/` exports `staleWhileRevalidate()` and `deleteOldCaches()` as `AstroServiceWorkerPreset` objects (`install`/`activate`/`fetch` handlers). They are exported from the package and importable at `@ayco/astro-sw/presets`, but **`astro-sw.ts` does not consume `options.presets` yet** — it only `console.log`s it. Both demos have the preset import commented out. Same for `AstroServiceWorkerConfig.experimental.strategy` and `customRoutes`: typed but unimplemented.
+`src/presets/` exports `staleWhileRevalidate()` and `deleteOldCaches()` as `AstroServiceWorkerPreset` objects (`install`/`activate`/`fetch` handlers). They are exported from the package and importable at `@ayco/astro-sw/presets`, but **`astro-sw.ts` does not consume `options.presets` yet** — it only `console.log`s it. Both demos have the preset import commented out. Same for `AstroServiceWorkerConfig.experimental.strategy` and `customRoutes`: typed but unimplemented.
 
 ### eslint globals export
 
-`@ayco/astro-sw/globals` (`package/src/eslint/globals.ts`) exports `{__prefix, __version, __assets}` as read-only globals so consumers' `no-undef` doesn't fire on injected variables. This repo's own `eslint.config.mjs` imports it from the workspace package — meaning **linting requires the package to be built first**.
+`@ayco/astro-sw/globals` (`src/eslint/globals.ts`) exports `{__prefix, __version, __assets}` as read-only globals so consumers' `no-undef` doesn't fire on injected variables. This repo's own `eslint.config.mjs` imports it by package name, which resolves back to the root's own `dist/` — meaning **linting requires the package to be built first**.
 
 ## Conventions
 
 - Prettier: no semicolons, single quotes, es5 trailing commas, 2-space tabs. HTML/MD/CSS/YAML are prettier-ignored.
 - ESM only (`"type": "module"`), Node >= 18, Astro `^6` peer dep.
-- `package/README.md` is generated — it's copied from the root `README.md` during build and is gitignored. Edit the **root** `README.md`.
+- The root `README.md` is the one published to npm — edit it directly (it is no longer copied anywhere at build time).
