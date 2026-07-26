@@ -43,7 +43,7 @@ export default function serviceWorker(
   } = registrationHooks
 
   // TODO use presets
-  console.log(presets)
+  console.log("Presets are a work in progress:", presets)
 
   /**
    * @type {Array<string>}

@@ -23,7 +23,8 @@ Run everything from the repo root:
 
 ```bash
 pnpm run build          # tsup build of src/ into dist/
-pnpm run test           # vitest run
+pnpm run test           # vitest run (always with coverage)
+pnpm run test:watch     # vitest in watch mode
 pnpm run lint           # eslint with cache
 pnpm run format         # prettier --write
 pnpm run check          # format + lint
@@ -32,7 +33,17 @@ pnpm run dev            # build + build & preview the SSR demo (Fastify, port 43
 pnpm run dev:static     # build + build & preview the static demo
 ```
 
-Single test: `pnpm exec vitest run test/astro-sw.test.ts` (or `-t '<name>'` to filter by test name). The test suite is currently a placeholder.
+Single test: `pnpm exec vitest run test/astro-sw.test.ts` (or `-t '<name>'` to filter by test name).
+
+Because the root is the package, adding a dependency to it needs the explicit workspace-root flag: `pnpm add -Dw <pkg>`. Without `-w`, pnpm refuses with `ERR_PNPM_ADDING_TO_ROOT`.
+
+### Tests and coverage
+
+`vitest.config.mjs` scopes the run to `test/**/*.test.ts` (the demo workspaces are built, not unit tested) and has coverage **enabled by default** — every `pnpm run test`, including the one in the `pre-commit` hook, writes a v8 `html` + `text` report to the gitignored `coverage/`.
+
+`test/astro-sw.test.ts` drives the integration's hooks directly with fixture Astro build output, with `node:fs/promises` and `esbuild` mocked, so nothing touches the disk. Assertions about the asset list read back the `const __assets = […]` line the integration writes into the temp entry, since that string is the actual contract with the user's service worker. Fixtures are coupled to two things the integration derives from the cwd: the service worker path is resolved against it, and public files are mapped relative to `<cwd>/dist/`.
+
+`src/astro-sw.ts` is fully covered by line. The presets are not covered at all — they are unwired (see below), so the repo-wide total sits near 55%. Barrel and type-only files are excluded from the report.
 
 Release: `pnpm run bump:build:publish` (bumpp → tsup → `npm publish` from the root).
 

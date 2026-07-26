@@ -8,3 +8,6 @@ package-lock.json
 *swp
 
 .eslintcache
+
+# vitest
+coverage

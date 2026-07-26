@@ -26,6 +26,7 @@ export default [
       '**/.output/*',
       '**/.astro/*',
       '**/node_modules/*',
+      '**/coverage/*',
       '**/env.d.ts',
     ],
   },
