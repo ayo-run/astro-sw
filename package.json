@@ -51,7 +51,7 @@
     "lint": "eslint . --config eslint.config.mjs --cache",
     "lint:fix": "eslint . --config eslint.config.mjs --fix",
     "check": "npm run format && npm run lint",
-    "prepare": "husky",
+    "prepare": "husky && npm run build",
     "bump": "bumpp",
     "release": "npm run release:check && bumpp && node ./scripts/release.js",
     "release:check": "npm run build && npm run lint && npm run test && npm run build:demo && pnpm -F demo-static build",
@@ -62,8 +62,7 @@
     "demo": "npm run build && pnpm -F demo build:preview",
     "dev": "npm run demo",
     "demo:static": "npm run build && pnpm -F demo-static build:preview",
-    "dev:static": "npm run demo:static",
-    "postinstall": "npm run build"
+    "dev:static": "npm run demo:static"
   },
   "keywords": [
     "withastro",

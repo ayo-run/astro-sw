@@ -61,7 +61,7 @@ Because the root is the package, adding a dependency to it needs the explicit wo
 
 The leftover `npm run publish` script is a manual escape hatch only; using it produces a release without provenance and will fail outright if npm's "require trusted publishing" setting is enabled for the package.
 
-`postinstall` runs `npm run build`, and the husky `pre-commit` hook runs lint + test. `post-commit` pushes to the `gh` and `sh` mirrors automatically — expect commits to be pushed to public remotes as a side effect of committing.
+`prepare` runs `husky && npm run build`, and the husky `pre-commit` hook runs lint + test. The build belongs in `prepare`, not `postinstall`: because the repo root *is* the published package, a `postinstall` script ships in the tarball and runs in every consumer's `node_modules` — where neither `src/` nor `tsup` exists, so `npm i @ayco/astro-sw` aborts with `tsup: not found`. `prepare` runs on a local `pnpm install` here but never for a dependency installed from the registry, so it gives local dev the same build without the blast radius. `post-commit` pushes to the `gh` and `sh` mirrors automatically — expect commits to be pushed to public remotes as a side effect of committing.
 
 ## Architecture
 
