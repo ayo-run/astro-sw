@@ -61,28 +61,34 @@
     "perf"
   ],
   "dependencies": {
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.2"
   },
   "peerDependencies": {
     "astro": "^6 || ^7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.2.0",
     "@vitest/coverage-v8": "^4.1.10",
-    "astro-eslint-parser": "^1.3.0",
-    "bumpp": "^12.0.0",
+    "astro-eslint-parser": "^1.4.0",
+    "bumpp": "^12.2.1",
     "changelogithub": "15.0.4",
-    "eslint": "^10.0.3",
-    "eslint-plugin-astro": "^1.6.0",
+    "eslint": "^10.8.1",
+    "eslint-plugin-astro": "^1.7.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
-    "globals": "^17.4.0",
+    "globals": "^17.11.0",
     "husky": "^9.1.7",
-    "prettier": "^3.8.1",
+    "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.0",
-    "vitest": "^4.1.0"
+    "typescript-eslint": "^8.67.0",
+    "vitest": "^4.1.10"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "^0.28.2",
+      "tar": "^7.5.21"
+    }
   }
 }

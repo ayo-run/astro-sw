@@ -12,6 +12,13 @@
   // git.ayo.run is the repo of record and has no Dependabot alert feed for
   // Renovate to read, so it queries OSV directly instead.
   osvVulnerabilityAlerts: true,
+  // osvVulnerabilityAlerts only fires on ranges declared in a manifest, so a
+  // transitive resolution can go stale without anything noticing: the root
+  // `astro` peer sat at 6.1.3 while 7.x was in range the whole time, and it
+  // alone accounted for 19 of the 52 advisories OpenSSF Scorecard reported.
+  // Refreshing the whole lockfile on a schedule is what stops that recurring.
+  // It rewrites no declared range, so the `widen` rule below is unaffected.
+  lockFileMaintenance: { enabled: true },
   packageRules: [
     {
       description: 'Widen the astro peer range instead of replacing it, so consumers on an older supported major are not locked out by a dependency bump',
