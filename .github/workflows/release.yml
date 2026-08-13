@@ -5,6 +5,12 @@ on:
     tags:
       - 'v*'
 
+# Default-deny floor. Both jobs below grant themselves what they need; this is
+# here so a job added later cannot silently inherit a write token next to the
+# `id-token: write` publish job.
+permissions:
+  contents: read
+
 jobs:
   changelog:
     name: Changelog
@@ -12,19 +18,40 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
+          # Nothing in this workflow pushes with git — the release is created
+          # through the API with the token below — so leaving a credential in
+          # .git/config for the rest of the job is pure exposure.
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
 
       - name: Set node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: .nvmrc
+          # No dependency cache here either: this job holds `contents: write`,
+          # and a cache entry restored here can have been written by an earlier
+          # run on any branch. Same reasoning as the publish job below.
+          package-manager-cache: false
+
+      # `--ignore-scripts` because this job needs one CLI, not a built package:
+      # it skips the root's own postinstall build, which is pure waste here and
+      # is the only lifecycle script pnpm 10 would still run.
+      - run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Generate release
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        run: npx changelogithub
+        # Run from the lockfile rather than `npx changelogithub@15.0.4`. A
+        # version pin only fixes the top-level tarball; changelogithub declares
+        # nine dependencies, eight of them caret ranges, which npx re-resolves
+        # on every run — inside a job holding `contents: write`. The lockfile
+        # pins that whole tree by sha512 integrity, and `--frozen-lockfile`
+        # fails rather than drifting. Renovate raises updates as PRs.
+        run: pnpm exec changelogithub
 
   publish-npm:
     name: Publish to npm
@@ -33,21 +60,47 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
 
-      - uses: actions/setup-node@v6
+      # No dependency cache in this job, deliberately. A cache entry restored
+      # here can have been written by an earlier run on any branch, and this is
+      # the job that signs and publishes what it builds — so a poisoned cache
+      # becomes a signed release. Releases are rare; paying the full install
+      # cost is the right trade. (zizmor `cache-poisoning`.)
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: .nvmrc
           registry-url: 'https://registry.npmjs.org'
-          cache: pnpm
+          package-manager-cache: false
 
-      # trusted publishing needs npm >= 11.5.1, newer than the bundled npm
-      - name: Ensure npm supports trusted publishing
-        run: npm install -g npm@latest
+      # Trusted publishing needs npm >= 11.5.1. The npm bundled with the Node
+      # `.nvmrc` selects (`lts/*` -> 24.x, npm 11.17) already clears that, so
+      # this asserts the floor rather than running `npm i -g npm@latest`: an
+      # unpinned install of whatever npm ships next, inside the one job that
+      # holds `id-token: write`.
+      - name: Assert npm supports trusted publishing
+        run: |
+          NPM_VERSION="$(npm --version)"
+          REQUIRED=11.5.1
+          if [ "$(printf '%s\n%s\n' "$REQUIRED" "$NPM_VERSION" | sort -V | head -n1)" != "$REQUIRED" ]; then
+            echo "::error::npm $NPM_VERSION is older than $REQUIRED, which trusted publishing needs"
+            exit 1
+          fi
+          echo "npm $NPM_VERSION"
 
-      - run: pnpm install --frozen-lockfile
+      # `--ignore-scripts` so nothing in the dependency tree can execute in the
+      # one job holding `id-token: write`. pnpm 10 already declines to run
+      # dependency build scripts without an `onlyBuiltDependencies` allowlist,
+      # so this changes nothing today — it makes that a property of the workflow
+      # rather than of a default someone could change from the manifest.
+      #
+      # The build is unaffected: it runs explicitly on the next line, and
+      # `npm publish` runs `prepack` on its own regardless.
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run build
 
       - name: Publish

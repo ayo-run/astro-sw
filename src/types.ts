@@ -12,7 +12,6 @@ export type AstroServiceWorkerPreset = {
 
 export type AstroServiceWorkerConfig = {
   path?: string
-  presets?: AstroServiceWorkerPreset[]
   assetCachePrefix?: string
   assetCacheVersionID?: string
   customRoutes?: string[]

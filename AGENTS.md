@@ -93,7 +93,9 @@ Static and server outputs therefore reach the asset list by different paths; a c
 
 ### Presets (incomplete)
 
-`src/presets/` exports `staleWhileRevalidate()` and `deleteOldCaches()` as `AstroServiceWorkerPreset` objects (`install`/`activate`/`fetch` handlers). They are exported from the package and importable at `@ayco/astro-sw/presets`, but **`astro-sw.ts` does not consume `options.presets` yet** — it only `console.log`s it. Both demos have the preset import commented out. Same for `AstroServiceWorkerConfig.experimental.strategy` and `customRoutes`: typed but unimplemented.
+`src/presets/` exports `staleWhileRevalidate()` and `deleteOldCaches()` as `AstroServiceWorkerPreset` objects (`install`/`activate`/`fetch` handlers). They are **not shipped**. `src/presets/` is unbuilt WIP source: it is not a `tsup` entry, there is no `./presets` subpath in `exports`, `dist/presets/` no longer exists, and `AstroServiceWorkerConfig` has no `presets` field. Nothing in the published package can reach them, which is why `SECURITY.md` no longer carries a known-gap entry for their unsafe caching defaults — those defaults are still unsafe, and must be fixed before any of this is wired up.
+
+Wiring them up means reversing all of that: add the `tsup` entries back, re-add the `exports` subpaths, restore the config field, consume it in `astro-sw.ts`, and restore the `SECURITY.md` entry until the defaults are fixed. Until then nothing in the integration should reference presets, so an unused-variable error is the correct signal rather than something to silence with a log. Both demos have the preset import commented out. Same for `AstroServiceWorkerConfig.experimental.strategy` and `customRoutes`: typed but unimplemented.
 
 ### eslint globals export
 
