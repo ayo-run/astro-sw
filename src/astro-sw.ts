@@ -22,7 +22,6 @@ export default function serviceWorker(
   options?: AstroServiceWorkerConfig
 ): AstroIntegration {
   const {
-    presets,
     assetCachePrefix = ASTROSW,
     assetCacheVersionID = '0',
     path: serviceWorkerPath = undefined,
@@ -41,9 +40,6 @@ export default function serviceWorker(
     unsupported: unsupportedFn = () => { },
     afterRegistration: afterRegistrationFn = () => { },
   } = registrationHooks
-
-  // TODO use presets
-  console.log("Presets are a work in progress:", presets)
 
   /**
    * @type {Array<string>}

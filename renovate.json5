@@ -1,0 +1,32 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    // Keeps every `uses:` in the workflows pinned to a commit SHA, and pins any
+    // action added later — so the pinning in .github/workflows/release.yml does
+    // not decay the first time a step is added by hand.
+    'helpers:pinGitHubActionDigests',
+  ],
+  // Matches the `chore(deps):` prefix already used in this repo's history.
+  semanticCommitType: 'chore',
+  // git.ayo.run is the repo of record and has no Dependabot alert feed for
+  // Renovate to read, so it queries OSV directly instead.
+  osvVulnerabilityAlerts: true,
+  packageRules: [
+    {
+      description: 'Widen the astro peer range instead of replacing it, so consumers on an older supported major are not locked out by a dependency bump',
+      matchDepTypes: ['peerDependencies'],
+      rangeStrategy: 'widen',
+    },
+  ],
+  customManagers: [
+    {
+      customType: 'regex',
+      description: 'Keep the changelogithub version pinned in the release workflow up to date',
+      managerFilePatterns: ['/^\\.github/workflows/release\\.yml$/'],
+      matchStrings: ['npx changelogithub@(?<currentValue>\\S+)'],
+      depNameTemplate: 'changelogithub',
+      datasourceTemplate: 'npm',
+    },
+  ],
+}
