@@ -1,0 +1,64 @@
+name: Scorecard
+
+# Runs OpenSSF Scorecard and publishes the result. Without `publish_results:
+# true` there is no public result at all — deps.dev and api.scorecard.dev
+# currently have no record of this repository, so none of the branch
+# protection or review process it now has is visible from outside.
+#
+# The weekly schedule exists because several Scorecard checks read repository
+# and ecosystem state (branch protection, dependency freshness, published
+# advisories) rather than the contents of a commit. Those can change with no
+# push to this repo, so a push-only trigger would leave a stale result
+# indefinitely.
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Mondays, 07:17 UTC. Off the hour on purpose: scheduled workflows are
+    # queued at peak load on the hour and GitHub drops them under pressure.
+    - cron: '17 7 * * 1'
+  workflow_dispatch:
+
+# The publishing API rejects results from a workflow that grants write at the
+# top level, so read-all here is a requirement and not just good hygiene.
+# For the same reason this file must carry no top-level `env` or `defaults`,
+# and no other job may request `id-token: write`.
+# https://github.com/ossf/scorecard-action#workflow-restrictions
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      # Publishing the result to the OpenSSF API.
+      id-token: write
+      # Uploading SARIF to the repository's code scanning dashboard.
+      security-events: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      # Kept for debugging a score that moves unexpectedly: the artifact is the
+      # full finding set, while the published result is only the number.
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+
+      - name: Upload to code scanning
+        uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
+        with:
+          sarif_file: results.sarif
