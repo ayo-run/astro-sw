@@ -1,12 +1,12 @@
-function register(){
-    if ('customElements' in window)
-        window.customElements.define('web-component', WebComponent)
+function register() {
+  if ('customElements' in window)
+    window.customElements.define('web-component', WebComponent)
 }
 
 class WebComponent extends HTMLElement {
-    connectedCallback() {
-        console.log('hello')
-    }
+  connectedCallback() {
+    console.log('hello')
+  }
 }
 
 register()

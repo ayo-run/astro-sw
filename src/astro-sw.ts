@@ -33,12 +33,12 @@ export default function serviceWorker(
   } = options ?? {}
 
   const {
-    installing: installingFn = () => { },
-    waiting: waitingFn = () => { },
-    active: activeFn = () => { },
-    error: errorFn = () => { },
-    unsupported: unsupportedFn = () => { },
-    afterRegistration: afterRegistrationFn = () => { },
+    installing: installingFn = () => {},
+    waiting: waitingFn = () => {},
+    active: activeFn = () => {},
+    error: errorFn = () => {},
+    unsupported: unsupportedFn = () => {},
+    afterRegistration: afterRegistrationFn = () => {},
   } = registrationHooks
 
   /**
@@ -77,7 +77,12 @@ export default function serviceWorker(
   return {
     name: ASTROSW,
     hooks: {
-      'astro:config:setup': async ({ injectScript, command, logger, config }) => {
+      'astro:config:setup': async ({
+        injectScript,
+        command,
+        logger,
+        config,
+      }) => {
         if (!serviceWorkerPath || serviceWorkerPath === '') {
           // REQUIRED OPTION IS MISSING
           logger.error('Missing required path to service worker script')
@@ -104,7 +109,7 @@ declare const __prefix: string;`
         dir,
         pages,
         logger,
-        assets: buildAssets
+        assets: buildAssets,
       }) => {
         const outfile = fileURLToPath(new URL('./sw.js', dir))
         const swPath =
@@ -112,7 +117,6 @@ declare const __prefix: string;`
             ? join(__dirname, serviceWorkerPath)
             : undefined
         let originalScript
-
 
         /**
          * only for output = 'static
@@ -123,14 +127,16 @@ declare const __prefix: string;`
           _publicFiles = (
             (await readdir(dir, { withFileTypes: true, recursive: true })) ?? []
           )
-            .filter(dirent => dirent.isFile())
+            .filter((dirent) => dirent.isFile())
             .map((dirent) => {
-              const currentDir = dirent.parentPath.replace(__dirname + '/dist/', '/')
+              const currentDir = dirent.parentPath.replace(
+                __dirname + '/dist/',
+                '/'
+              )
               const filepath = `${currentDir === '/' ? '' : currentDir}/${dirent.name}`
               return filepath
             })
         }
-
 
         const _pages =
           pages
@@ -157,17 +163,19 @@ declare const __prefix: string;`
           ...exclude.map((route) => `${route}/`),
         ]
 
-        const _buildAssets = Array.from(buildAssets.keys())
-          .filter(key => !key.includes('...slug'))
+        const _buildAssets = Array.from(buildAssets.keys()).filter(
+          (key) => !key.includes('...slug')
+        )
 
         const __assets = [
-          ...new Set([ // dedupe
+          ...new Set([
+            // dedupe
             ...ssrAssets,
             ...include,
             ..._buildAssets,
             ..._pages,
             ..._pagesWithoutEndSlash,
-            ...(output === 'static' ? _publicFiles : [])
+            ...(output === 'static' ? _publicFiles : []),
           ]),
         ].filter(
           (asset) =>
@@ -211,9 +219,9 @@ declare const __prefix: string;`
           await writeFile(
             tempFile,
             assetsDeclaration +
-            versionDeclaration +
-            prefixDeclaration +
-            originalScript,
+              versionDeclaration +
+              prefixDeclaration +
+              originalScript,
             { flag: 'w+' }
           )
         } catch (err) {

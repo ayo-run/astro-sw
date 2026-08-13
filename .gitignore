@@ -11,3 +11,6 @@ package-lock.json
 
 # vitest
 coverage
+
+# actionlint, fetched and checksum-verified by scripts/lint-workflows.sh
+.cache/

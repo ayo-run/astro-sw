@@ -2,6 +2,10 @@
 
 [![Package information: NPM version](https://img.shields.io/npm/v/@ayco/astro-sw)](https://www.npmjs.com/package/@ayco/astro-sw)
 [![Package information: NPM license](https://img.shields.io/npm/l/@ayco/astro-sw)](https://www.npmjs.com/package/@ayco/astro-sw)
+[![Package information: NPM downloads](https://img.shields.io/npm/dt/@ayco/astro-sw)](https://www.npmjs.com/package/@ayco/astro-sw)
+
+[![CI](https://github.com/ayo-run/astro-sw/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ayo-run/astro-sw/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ayo-run/astro-sw/badge)](https://scorecard.dev/viewer/?uri=github.com/ayo-run/astro-sw)
 
 Use your own authored [service worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) with Astro.
 

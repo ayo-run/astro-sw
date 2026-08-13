@@ -1,3 +1,12 @@
 echo "pre-commit..."
 pnpm run lint
 pnpm run test
+
+# Only when a workflow file is actually staged — this fetches a binary on first
+# use, and most commits do not touch .github/workflows/.
+if git diff --cached --name-only | grep -q '^\.github/workflows/'; then
+  echo "workflow files staged, linting..."
+  # A network failure must not block a commit; a lint error should. The script
+  # draws that line.
+  DOWNLOAD_FAILURE_EXIT=0 sh scripts/lint-workflows.sh
+fi

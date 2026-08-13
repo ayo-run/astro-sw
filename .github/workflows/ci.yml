@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref (e.g. new pushes to a PR).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Lint, test, check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Before linting, not after: eslint.config.mjs imports
+      # `@ayco/astro-sw/globals` by package name, which resolves back to this
+      # repo's own dist/. Without a build, the lint step fails to resolve its
+      # own config.
+      - name: Build
+        run: pnpm run build
+
+      - name: Lint
+        run: pnpm lint
+
+      # `prettier --check`, not `pnpm check` — that script runs
+      # `prettier . --write`, which rewrites the tree and would therefore pass
+      # unconditionally in CI while telling you nothing.
+      - name: Formatting
+        run: pnpm exec prettier . --check
+
+      - name: Unit tests
+        run: pnpm test
+
+      # Static and server outputs collect the asset list by different code
+      # paths, so a change to asset collection can pass one and break the
+      # other. Both demos are built for the same reason `release:check` builds
+      # both locally.
+      - name: Build both demos
+        run: |
+          pnpm run build:demo
+          pnpm -F demo-static build
+
+      # The repo root *is* the published package, so package.json ships to the
+      # registry as-is and npm runs install lifecycle scripts inside every
+      # consumer's node_modules — where neither src/ nor tsup exists. A
+      # `postinstall: npm run build` is exactly what broke 1.0.2 and
+      # 1.0.3-beta.1, aborting `npm i` with `tsup: not found` for everyone.
+      #
+      # `prepare` is the safe equivalent and is deliberately not flagged: it
+      # runs on a local install here and never for a registry dependency.
+      #
+      # String concatenation rather than a template literal on purpose: the
+      # `${...}` of a literal sits inside the single-quoted `node -e` argument,
+      # and shellcheck reads it as a shell expansion that will not expand
+      # (SC2016), which actionlint promotes to a CI failure.
+      - name: Assert the published package runs no install script
+        run: |
+          node -e '
+            const pkg = require("./package.json");
+            const scripts = pkg.scripts ?? {};
+            const bad = ["preinstall", "install", "postinstall"].filter(
+              (name) => scripts[name]
+            );
+            if (bad.length > 0) {
+              console.error("Install lifecycle script(s) in the published manifest: " + bad.join(", "));
+              console.error("package.json ships as-is, and npm runs these in every consumer");
+              console.error("node_modules, where src/ and tsup do not exist. This is what");
+              console.error("broke 1.0.2 and 1.0.3-beta.1. Use prepare instead.");
+              process.exit(1);
+            }
+            console.log("OK: no install lifecycle script reaches consumers");
+          '
+
+  workflows:
+    name: Lint workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      # The same script the pre-commit hook runs, so the pinned version and its
+      # checksum are defined in one place and a contributor can reproduce this
+      # job exactly. It fetches and checksum-verifies actionlint rather than
+      # using a third-party action — see the script for why.
+      #
+      # shellcheck is preinstalled on ubuntu-latest, so `run:` blocks are
+      # checked here. The script warns when it is missing locally, because
+      # actionlint skips those checks silently rather than failing.
+      - name: Run actionlint
+        run: ./scripts/lint-workflows.sh
