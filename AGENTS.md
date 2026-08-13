@@ -4,7 +4,7 @@ This file provides guidance to any AI Coding Agent / Assistant when working with
 
 ## What this is
 
-`@ayco/astro-sw` — an Astro integration that lets a project ship its **own hand-authored service worker**, with build-time asset lists injected into it. Published to npm; source of truth repo is `git.ayo.run` (`origin`), mirrored to GitHub (`gh`) and SourceHut (`sh`).
+`@ayco/astro-sw` — an Astro integration that lets a project ship its **own hand-authored service worker**, with build-time asset lists injected into it. Published to npm; source of truth repo is `git.ayo.run` (`origin`), mirrored to SourceHut (`sh`) and to GitHub (`gh`), which is where releases are published from. See [Releasing](#releasing).
 
 ## Repo layout (pnpm workspace)
 
@@ -32,7 +32,8 @@ pnpm run check          # format + lint
 pnpm run dev            # build + build & preview the SSR demo (Fastify, port 4321)
 pnpm run dev:static     # build + build & preview the static demo
 
-pnpm run release        # check + bumpp + push tags; CI does the publishing
+pnpm bump               # check + bumpp: version, commit, tag, push to origin
+pnpm release            # push the tag to gh, once the commit has landed there
 ```
 
 Single test: `pnpm exec vitest run test/astro-sw.test.ts` (or `-t '<name>'` to filter by test name).
@@ -49,19 +50,23 @@ Because the root is the package, adding a dependency to it needs the explicit wo
 
 ### Releasing
 
-`pnpm run release` is the only supported path. It runs, in order:
+A release is **two commands, not one**, because bumping the version and publishing it are two decisions:
 
-1. `release:check` — build, lint, test, then build **both** demos, since static and server outputs collect assets differently.
-2. `bumpp` — bumps the version, commits `chore: release vX.Y.Z`, tags `vX.Y.Z`, and pushes to `origin` (git.ayo.run) itself.
-3. `scripts/release.js` — refuses to run off `main` or with a dirty tree, then pushes the commit and tag to `origin`, `gh`, and `sh`. Only `gh` is fatal on failure; the others are best-effort mirrors.
+1. `pnpm bump` — runs `release:check` (build, lint, test, then build **both** demos, since static and server outputs collect assets differently), then `bumpp`: bumps the version, commits `chore: release vX.Y.Z`, tags `vX.Y.Z`, and pushes to `origin` (git.ayo.run) itself.
+2. The release commit reaches `gh`'s `main` the same way every other commit does. Nothing is pushed there directly.
+3. `pnpm release` — `scripts/release.js`, which pushes the tag to `gh` and then, best-effort, to `sh`.
+
+Step 3 refuses unless the tagged commit is an ancestor of `gh/main`. That guard is load-bearing rather than defensive: a branch ruleset protects `refs/heads/*` and nothing protects `refs/tags/*`, so a tag pointing at a commit `main` cannot reach would push without complaint and the release workflow would publish from it. It is also the only thing in the chain that notices a pull request that was squash-merged instead of merged — squashing rewrites the commit and strands the tag on one that no longer exists.
+
+The script derives the tag from `package.json` rather than `git describe`, so it cannot drift from the version the release workflow checks it against.
 
 **Nothing is published from a laptop.** The `v*` tag landing on `gh` triggers `.github/workflows/release.yml`, which publishes to npm via **trusted publishing** (OIDC, `id-token: write`) — no npm token exists anywhere, and the release carries provenance. The workflow refuses to publish if the tag and `package.json` version disagree, and routes prerelease versions to their own dist-tag (`1.1.0-beta.1` → `beta`) so `latest` keeps pointing at the newest stable.
 
 `package.json` `repository.url` points at the **GitHub mirror**, not at `origin` (git.ayo.run), even though git.ayo.run is the repo of record. This is load-bearing: npm validates the provenance attestation against that field, and publishing fails with `E422 ... expected to match "https://github.com/ayo-run/astro-sw" from provenance` if it points anywhere else. Do not "correct" it back.
 
-The leftover `npm run publish` script is a manual escape hatch only; using it produces a release without provenance and will fail outright if npm's "require trusted publishing" setting is enabled for the package.
+There is deliberately no manual publish script. Publishing by hand produces a release without provenance, and fails outright once npm's "require trusted publishing" setting is enabled for the package.
 
-`prepare` runs `husky && npm run build`, and the husky `pre-commit` hook runs lint + test. The build belongs in `prepare`, not `postinstall`: because the repo root *is* the published package, a `postinstall` script ships in the tarball and runs in every consumer's `node_modules` — where neither `src/` nor `tsup` exists, so `npm i @ayco/astro-sw` aborts with `tsup: not found`. `prepare` runs on a local `pnpm install` here but never for a dependency installed from the registry, so it gives local dev the same build without the blast radius. `post-commit` pushes to the `gh` and `sh` mirrors automatically — expect commits to be pushed to public remotes as a side effect of committing.
+`prepare` runs `husky && npm run build`, and the husky `pre-commit` hook runs lint + test. The build belongs in `prepare`, not `postinstall`: because the repo root *is* the published package, a `postinstall` script ships in the tarball and runs in every consumer's `node_modules` — where neither `src/` nor `tsup` exists, so `npm i @ayco/astro-sw` aborts with `tsup: not found`. `prepare` runs on a local `pnpm install` here but never for a dependency installed from the registry, so it gives local dev the same build without the blast radius. `post-commit` pushes to `sh` automatically — expect commits to be pushed to that public remote as a side effect of committing. It deliberately does **not** push to `gh`: `gh/main` is what step 3 checks the release tag against, so a hook putting commits there on its own would defeat that check.
 
 ## Architecture
 
