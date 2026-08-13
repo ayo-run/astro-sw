@@ -97,6 +97,16 @@ jobs:
   # pinned per row because @astrojs/node tracks Astro's major — 10 is astro ^6,
   # 11 is astro ^7 — so the row would otherwise fail on an unmet peer rather
   # than on anything this package did.
+  #
+  # Exact versions, not ranges. With ranges these installs resolved to
+  # astro@6.1.3 + @astrojs/node@10.1.4 — a pair never released together, whose
+  # build fails because the adapter imports helpers that Astro does not yet
+  # export. Two `pnpm add` calls each resolve against a lockfile the other has
+  # just mutated, and the root already carries a resolved `astro` because pnpm
+  # auto-installs peers, so the range for one can be satisfied from a stale
+  # entry while the other resolves fresh. Both released pairs build; the
+  # invented one does not. Pinning removes the skew, and Renovate keeps the
+  # numbers current.
   astro-compat:
     name: Astro ${{ matrix.astro }} compatibility
     runs-on: ubuntu-latest
@@ -104,10 +114,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - astro: 6
-            adapter: 10
-          - astro: 7
-            adapter: 11
+          - astro: '6.4.8'
+            adapter: '10.1.4'
+          - astro: '7.2.1'
+            adapter: '11.1.1'
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -125,8 +135,9 @@ jobs:
       # runner.
       - name: Install Astro ${{ matrix.astro }}
         run: |
-          pnpm --filter demo --filter demo-static add -D "astro@^${{ matrix.astro }}"
-          pnpm --filter demo add -D "@astrojs/node@^${{ matrix.adapter }}"
+          pnpm --filter demo --filter demo-static add -D "astro@${{ matrix.astro }}"
+          pnpm --filter demo add -D "@astrojs/node@${{ matrix.adapter }}"
+          pnpm --filter demo --filter demo-static list astro @astrojs/node --depth 0
 
       - name: Build both demos
         run: |
