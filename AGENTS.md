@@ -104,5 +104,9 @@ Wiring them up means reversing all of that: add the `tsup` entries back, re-add 
 ## Conventions
 
 - Prettier: no semicolons, single quotes, es5 trailing commas, 2-space tabs. HTML/MD/CSS/YAML are prettier-ignored.
-- ESM only (`"type": "module"`), Node >= 18, Astro `^6` peer dep.
+- ESM only (`"type": "module"`), Node >= 22.12, Astro `^6 || ^7` peer dep. The
+  Node floor matches Astro's own (`>=22.12.0` on both 6 and 7) and is also what
+  `astro:build:done` needs: the static path calls `dirent.parentPath`, which is
+  Node 20.12+. The Astro range is enforced by the `astro-compat` CI matrix —
+  widening it without adding a row there is a claim nothing tests.
 - The root `README.md` is the one published to npm — edit it directly (it is no longer copied anywhere at build time).
