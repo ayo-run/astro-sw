@@ -18,7 +18,7 @@ export default defineConfig({
       include: ['src'],
       exclude: [
         // barrel file; only re-exports
-        'src/presets/index.ts',
+        'src/presets/**',
         // types only, no runtime code
         'src/types.ts',
       ],

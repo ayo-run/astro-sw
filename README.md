@@ -13,13 +13,7 @@ The integration accepts the path to your service worker and automatically inject
 
 It works on both Astro output options — `static` and `server` — and lets developers retain the flexibility for various [caching strategies](https://developer.chrome.com/docs/workbox/caching-strategies-overview/).
 
-## Background
-
-This integration was originally developed to support the Caching strategy needs of [Cozy](https://cozy.pub) -- the modern reading companion for the Web. You can find [an example service worker in the repository](https://github.com/ayo-run/Cozy/blob/main/src/sw.mjs).
-
-There is a work in progress adding `presets` for using common caching strategies and customizing the behavior of the service worker via config options. This aims to reduce the need for writing the service worker script by hand for most use cases.
-
-Get in touch:
+## Get in touch
 
 1. Submit tickets via [SourceHut todo](https://todo.sr.ht/~ayoayco/astro-sw)
 1. Start a [GitHub discussion](https://github.com/ayo-run/astro-sw/discussions)
