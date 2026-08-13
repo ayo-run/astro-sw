@@ -88,6 +88,89 @@ jobs:
             console.log("OK: no install lifecycle script reaches consumers");
           '
 
+  # `peerDependencies.astro` is a claim about which majors this integration
+  # works with. This job is what earns it: each supported major gets installed
+  # into both demos and built, so widening the range without testing it fails
+  # here rather than in someone's project.
+  #
+  # Add a row when the range widens; delete one when it narrows. The adapter is
+  # pinned per row because @astrojs/node tracks Astro's major — 10 is astro ^6,
+  # 11 is astro ^7 — so the row would otherwise fail on an unmet peer rather
+  # than on anything this package did.
+  #
+  # Exact versions, not ranges. With ranges these installs resolved to
+  # astro@6.1.3 + @astrojs/node@10.1.4 — a pair never released together, whose
+  # build fails because the adapter imports helpers that Astro does not yet
+  # export. Two `pnpm add` calls each resolve against a lockfile the other has
+  # just mutated, and the root already carries a resolved `astro` because pnpm
+  # auto-installs peers, so the range for one can be satisfied from a stale
+  # entry while the other resolves fresh. Both released pairs build; the
+  # invented one does not. Pinning removes the skew, and Renovate keeps the
+  # numbers current.
+  astro-compat:
+    name: Astro ${{ matrix.astro }} compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - astro: '6.4.8'
+            adapter: '10.1.4'
+          - astro: '7.2.1'
+            adapter: '11.1.1'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+
+      # Deliberately not --frozen-lockfile: the point is to resolve a different
+      # Astro than the one the lockfile pins. The mutation is confined to the
+      # runner.
+      - name: Install Astro ${{ matrix.astro }}
+        run: |
+          pnpm --filter demo --filter demo-static add -D "astro@${{ matrix.astro }}"
+          pnpm --filter demo add -D "@astrojs/node@${{ matrix.adapter }}"
+          pnpm --filter demo --filter demo-static list astro @astrojs/node --depth 0
+
+      - name: Build both demos
+        run: |
+          pnpm run build:demo
+          pnpm -F demo-static build
+
+      # A build can succeed while emitting an empty asset list — the integration
+      # would then ship a service worker that caches nothing, silently. Assert
+      # the list reached the bundle instead of trusting the exit code.
+      - name: Assert each service worker carries an asset list
+        run: |
+          node -e '
+            const fs = require("fs");
+            const files = ["demo/dist/client/sw.js", "demo-static/dist/sw.js"];
+            let failed = false;
+            for (const file of files) {
+              if (!fs.existsSync(file)) {
+                console.error("missing: " + file);
+                failed = true;
+                continue;
+              }
+              const found = fs.readFileSync(file, "utf8").match(/\[\s*"\/[^\]]*\]/);
+              const assets = found ? JSON.parse(found[0]) : [];
+              if (!assets.includes("/blog")) {
+                console.error(file + ": expected /blog in the asset list, got " + assets.length + " entries");
+                failed = true;
+                continue;
+              }
+              console.log(file + ": " + assets.length + " assets");
+            }
+            if (failed) process.exit(1);
+          '
+
   workflows:
     name: Lint workflows
     runs-on: ubuntu-latest
